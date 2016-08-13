@@ -67,6 +67,7 @@ import me.ccrama.redditslide.Activities.Profile;
 import me.ccrama.redditslide.Activities.Reauthenticate;
 import me.ccrama.redditslide.Activities.Website;
 import me.ccrama.redditslide.Authentication;
+import me.ccrama.redditslide.MMMData;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.Reddit;
@@ -1133,6 +1134,15 @@ public class CommentAdapterHelper {
         }
 
         titleString.append(author);
+
+        TypedArray a_mmm = mContext.obtainStyledAttributes(new FontPreferences(mContext).getPostFontStyle().getResId(), R.styleable.FontStyle);
+        int fontsize_mmm = a_mmm.getDimensionPixelSize(R.styleable.FontStyle_font_commenttitle, -1);
+        a_mmm.recycle();
+
+        //MMM Icons
+        titleString.append(" ");
+        titleString = MMMData.addIcons(mContext, titleString, fontsize_mmm, comment.getAuthor(), submission.getSubredditName());
+
         titleString.append(spacer);
 
         int scoreColor;

@@ -89,6 +89,8 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
     public static final int                                  enter_animation_time_multiplier = 1;
 
     public static Authentication authentication;
+    public static MMMData mmmdata;
+
 
     public static Sorting defaultSorting;
 
@@ -664,6 +666,8 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
 
         registerActivityLifecycleCallbacks(this);
         Authentication.authentication = getSharedPreferences("AUTH", 0);
+        MMMData.dataupdates = getSharedPreferences("MMM", 0);
+        MMMData.accounts = getSharedPreferences("MMMAUTH", 0);
         UserSubscriptions.subscriptions = getSharedPreferences("SUBSNEW", 0);
         UserSubscriptions.multiNameToSubs = getSharedPreferences("MULTITONAME", 0);
         UserSubscriptions.pinned = getSharedPreferences("PINNED", 0);
@@ -689,6 +693,7 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
         }
 
         authentication = new Authentication(this);
+        mmmdata = new MMMData(this);
 
         AdBlocker.init(this);
 
@@ -716,7 +721,7 @@ public class Reddit extends MultiDexApplication implements Application.ActivityL
             notificationTime = 360;
         }
 
-        SettingValues.tabletUI = isPackageInstalled(this) || FDroid.isFDroid;
+        SettingValues.tabletUI = true;//isPackageInstalled(this) || FDroid.isFDroid;
         videoPlugin = isVideoPluginInstalled(this);
 
         GifCache.init(this);

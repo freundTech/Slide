@@ -147,6 +147,7 @@ import me.ccrama.redditslide.Fragments.CommentPage;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
 import me.ccrama.redditslide.ImageFlairs;
 import me.ccrama.redditslide.Notifications.CheckForMail;
+import me.ccrama.redditslide.MMMData;
 import me.ccrama.redditslide.Notifications.NotificationJobScheduler;
 import me.ccrama.redditslide.PostMatch;
 import me.ccrama.redditslide.R;
@@ -1098,7 +1099,7 @@ public class MainActivity extends BaseActivity
                                 try {
                                     SubredditPaginator p =
                                             new SubredditPaginator(Authentication.reddit,
-                                                    "slideforreddit");
+                                                    "slidemmm");
                                     p.setLimit(2);
                                     ArrayList<Submission> posts = new ArrayList<>(p.next());
                                     for (Submission s : posts) {
@@ -1878,6 +1879,17 @@ public class MainActivity extends BaseActivity
                     MainActivity.this.startActivity(inte);
                 }
             });
+            if (!MMMData.loggedin) {
+                header.findViewById(R.id.mmmauth).setOnClickListener(new OnSingleClickListener() {
+                    @Override
+                    public void onSingleClick(View view) {
+                        Intent inte = new Intent(MainActivity.this, MMMLogin.class);
+                        MainActivity.this.startActivity(inte);
+                    }
+                });
+            } else {
+                header.findViewById(R.id.mmmauth).setVisibility(View.GONE);
+            }
             header.findViewById(R.id.offline).setOnClickListener(new OnSingleClickListener() {
                 @Override
                 public void onSingleClick(View view) {
@@ -4429,7 +4441,7 @@ public class MainActivity extends BaseActivity
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(MainActivity.this, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

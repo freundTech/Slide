@@ -2,9 +2,9 @@ package me.ccrama.redditslide.Adapters;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -29,7 +29,6 @@ import me.ccrama.redditslide.Activities.Album;
 import me.ccrama.redditslide.Activities.MediaView;
 import me.ccrama.redditslide.Activities.Tumblr;
 import me.ccrama.redditslide.ContentType;
-import me.ccrama.redditslide.ImgurAlbum.Image;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.SettingValues;
@@ -47,7 +46,10 @@ public class TumblrView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public int height;
     public String subreddit;
 
+    private Context mContext;
+
     public TumblrView(final Activity context, final List<Photo> users, int height, String subreddit) {
+        mContext = context;
 
         this.height = height;
         main = context;
@@ -155,7 +157,7 @@ public class TumblrView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             {
                 if (user.getCaption() != null) {
-                    List<String> text = SubmissionParser.getBlocks(user.getCaption());
+                    List<String> text = SubmissionParser.getBlocks(mContext, user.getCaption());
                     setTextWithLinks(text.get(0), holder.body);
                     if (holder.body.getText().toString().isEmpty()) {
                         holder.body.setVisibility(View.GONE);

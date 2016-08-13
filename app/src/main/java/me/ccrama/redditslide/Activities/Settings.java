@@ -404,6 +404,14 @@ public class Settings extends BaseActivity {
             findViewById(R.id.reddit_settings).setEnabled(false);
             findViewById(R.id.reddit_settings).setAlpha(0.25f);
         }
+
+        findViewById(R.id.mmm).setOnClickListener(new OnSingleClickListener() {
+            @Override
+            public void onSingleClick(View v) {
+                Intent inte = new Intent(Settings.this, SettingsMMM.class);
+                Settings.this.startActivity(inte);
+            }
+        });
     }
 
     @Override

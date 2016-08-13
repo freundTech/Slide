@@ -302,7 +302,7 @@ public class CommentAdapterSearch extends RecyclerView.Adapter<RecyclerView.View
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(mContext, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

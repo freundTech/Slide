@@ -160,6 +160,15 @@ public class SubmissionCache {
       /*todo maybe?  titleString.append(((comment.hasBeenEdited() && comment.getEditDate() != null) ? " *" + TimeUtils.getTimeAgo(comment.getEditDate().getTime(), mContext) : ""));
         titleString.append("  ");*/
 
+        TypedArray a = mContext.obtainStyledAttributes(new FontPreferences(mContext).getPostFontStyle().getResId(), R.styleable.FontStyle);
+        int fontsize = a.getDimensionPixelSize(R.styleable.FontStyle_font_cardinfo, -1);
+        a.recycle();
+
+        //MMM Icons
+        titleString.append(" ");
+        titleString = MMMData.addIcons(mContext, titleString, fontsize, submission.getAuthor(), submission.getSubredditName());
+
+
         if (UserTags.isUserTagged(submission.getAuthor())) {
             SpannableStringBuilder pinned = new SpannableStringBuilder(
                     " " + UserTags.getUserTag(submission.getAuthor()) + " ");

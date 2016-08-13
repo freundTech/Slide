@@ -1,11 +1,32 @@
 package me.ccrama.redditslide.util;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import android.content.Context;
+import android.util.Base64;
 
+import com.google.gson.stream.JsonReader;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import me.ccrama.redditslide.Authentication;
+import me.ccrama.redditslide.MMMData;
+
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
  * Utility methods to transform html received from Reddit into a more parsable
@@ -15,12 +36,15 @@ import java.util.regex.Pattern;
  * token such as for code blocks.
  */
 public class SubmissionParser {
+    private static final byte[] magic = "Salted__".getBytes(US_ASCII);
+
     private static final Pattern SPOILER_PATTERN = Pattern.compile("<a[^>]*title=\"([^\"]*)\"[^>]*>([^<]*)</a>");
+    private static final Pattern ENCRYPTION_REGEX = Pattern.compile("<a href=\"/r/MegaMegaMonitor/wiki/encrypted\" title=\"([-\\d]+):([A-Za-z0-9+/=]+)\">(.*?)</a>");
     private static final String TABLE_START_TAG = "<table>";
     private static final String HR_TAG = "<hr/>";
     private static final String TABLE_END_TAG = "</table>";
 
-    private SubmissionParser() {
+    private SubmissionParser(Context context) {
     }
 
     /**
@@ -38,7 +62,7 @@ public class SubmissionParser {
      * @param html html to be formatted. Can be raw from the api
      * @return list of text blocks
      */
-    public static List<String> getBlocks(String html) {
+    public static List<String> getBlocks(Context c, String html) {
         html = StringEscapeUtils.unescapeHtml4(html)
                 .replace("<p>", "<div>")
                 .replace("</p>", "</div>")
@@ -58,7 +82,7 @@ public class SubmissionParser {
         if (html.contains("<!-- SC_ON -->")) {
             html = html.substring(15, html.lastIndexOf("<!-- SC_ON -->"));
         }
-
+        html = parseMMMEncryption(c, html);
         html = parseSpoilerTags(html);
         if (html.contains("<ol") || html.contains("<ul")) {
             html = parseLists(html);
@@ -211,6 +235,131 @@ public class SubmissionParser {
     }
 
 
+    private static String parseMMMEncryption(Context c, String html) {
+        String encryptionText;
+        String publicText;
+        String password = null;
+        int subid = 0;
+        int keyid;
+
+        Matcher matcher = ENCRYPTION_REGEX.matcher(html);
+
+        while (matcher.find()) {
+            keyid = Integer.parseInt(matcher.group(1));
+            encryptionText = matcher.group(2);
+            publicText = matcher.group(3);
+            if (MMMData.loggedin) {
+                if(MMMData.data != null) {
+                    try {
+                        JSONArray subreddits = MMMData.data.getJSONArray("subs");
+                        for (int i = 0; i < subreddits.length(); i++) {
+                            JSONArray keys = subreddits.getJSONObject(i).getJSONArray("cryptokeys");
+                            for (int j = 0; j < keys.length(); j++) {
+                                JSONArray keyentry = keys.getJSONArray(j);
+                                if (keyentry.getInt(0) == keyid) {
+                                    password = keyentry.getString(1);
+                                    subid = subreddits.getJSONObject(i).getInt("id");
+                                }
+
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    JsonReader reader = null;
+                    try {
+                        reader = new JsonReader(
+                                new InputStreamReader(c.openFileInput(Authentication.name+"-mmmdata.json"), "UTF-8"));
+                        reader.beginObject();
+                        out:
+                        while (reader.hasNext()) {
+                            if (reader.nextName().equals("subs")) {
+                                reader.beginArray();
+                                while (reader.hasNext()) {
+                                    reader.beginObject();
+                                    while (reader.hasNext()) {
+                                        String name = reader.nextName();
+                                        if (name.equals("cryptokeys")) {
+                                            reader.beginArray();
+                                            while (reader.hasNext()) {
+                                                reader.beginArray();
+                                                if (reader.nextInt() == keyid) {
+                                                    password = reader.nextString();
+                                                } else {
+                                                    reader.skipValue();
+                                                }
+                                                reader.endArray();
+                                            }
+                                            reader.endArray();
+                                        } else if(name.equals("id")) {
+                                            subid = reader.nextInt();
+                                        } else {
+                                            reader.skipValue();
+                                        }
+                                    }
+                                    reader.endObject();
+                                    if(password != null) {
+                                        reader.close();
+                                        break out;
+                                    }
+                                }
+                                reader.endArray();
+                            } else {
+                                reader.skipValue();
+                            }
+                        }
+                        reader.close();
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (password != null) {
+                    try {
+                        final byte[] inBytes = Base64.decode(encryptionText, 0);
+
+                        final byte[] shouldBeMagic = Arrays.copyOfRange(inBytes, 0,
+                                magic.length);
+                        if (!Arrays.equals(shouldBeMagic, magic)) {
+                            System.out.println("Bad magic number");
+                            return html;
+                        }
+
+                        final byte[] salt = Arrays.copyOfRange(inBytes, magic.length,
+                                magic.length + 8);
+
+                        final byte[] passAndSalt = MMMData.concat(password.getBytes(US_ASCII), salt);
+
+                        byte[] hash = new byte[0];
+                        byte[] keyAndIv = new byte[0];
+                        for (int i = 0; i < 3; i++) {
+                            final byte[] data = MMMData.concat(hash, passAndSalt);
+                            final MessageDigest md = MessageDigest.getInstance("MD5");
+                            hash = md.digest(data);
+                            keyAndIv = MMMData.concat(keyAndIv, hash);
+                        }
+
+                        final byte[] keyValue = Arrays.copyOfRange(keyAndIv, 0, 32);
+                        final byte[] iv = Arrays.copyOfRange(keyAndIv, 32, 48);
+                        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+                        final SecretKeySpec key = new SecretKeySpec(keyValue, "AES");
+                        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+                        final byte[] clear = cipher.doFinal(inBytes, 16, inBytes.length - 16);
+                        final String clearText = new String(clear, ISO_8859_1);
+
+                        html = html.replace(matcher.group(), "<a href=\"/r/MegaMegaMonitor/wiki/encrypted\">[[e["+subid+"|||"+publicText+"|||"+clearText+"]e]]</a>");
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return html;
+    }
+
     /**
      * Move the spoil text inside of the "title" attribute to inside the link
      * tag. Then surround the spoil text with <code>[[s[</code> and <code>]s]]</code>.
@@ -231,7 +380,7 @@ public class SubmissionParser {
             spoilerText = matcher.group(1);
             spoilerTeaser = matcher.group(2);
             // Remove the last </a> tag, but keep the < for parsing.
-            if (!tag.contains("<a href=\"http")) {
+            if (tag.contains("<a href=\"/s")) {
                 html = html.replace(tag, tag.substring(0, tag.length() - 4) + (spoilerTeaser.isEmpty() ? "spoiler" : "") + "&lt; [[s[ " + spoilerText + "]s]]</a>");
             }
         }

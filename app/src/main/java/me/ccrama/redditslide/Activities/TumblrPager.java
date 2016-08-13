@@ -66,15 +66,12 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.ccrama.redditslide.Adapters.ImageGridAdapter;
 import me.ccrama.redditslide.Adapters.ImageGridAdapterTumblr;
 import me.ccrama.redditslide.ColorPreferences;
 import me.ccrama.redditslide.ContentType;
 import me.ccrama.redditslide.Fragments.BlankFragment;
 import me.ccrama.redditslide.Fragments.FolderChooserDialogCreate;
 import me.ccrama.redditslide.Fragments.SubmissionsView;
-import me.ccrama.redditslide.ImgurAlbum.AlbumUtils;
-import me.ccrama.redditslide.ImgurAlbum.Image;
 import me.ccrama.redditslide.Notifications.ImageDownloadNotificationService;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.Reddit;
@@ -544,7 +541,7 @@ public class TumblrPager extends FullScreenActivity
                 String description = "";
 
                 if (current.getCaption() != null) {
-                    List<String> text = SubmissionParser.getBlocks(current.getCaption());
+                    List<String> text = SubmissionParser.getBlocks(getContext(), current.getCaption());
                     description = text.get(0).trim();
                 }
                 if (title.isEmpty() && description.isEmpty()) {

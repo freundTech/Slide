@@ -56,6 +56,7 @@ import me.ccrama.redditslide.Activities.Draw;
 import me.ccrama.redditslide.ColorPreferences;
 import me.ccrama.redditslide.Constants;
 import me.ccrama.redditslide.Drafts;
+import me.ccrama.redditslide.MMMData;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.Reddit;
 import me.ccrama.redditslide.SecretConstants;
@@ -401,7 +402,7 @@ public class DoEditorActions {
                 LayoutInflater inflater = a.getLayoutInflater();
                 final View dialoglayout = inflater.inflate(R.layout.parent_comment_dialog, null);
                 final AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(a);
-                setViews(html, "NO sub",
+                setViews(v.getContext(), html, "NO sub",
                         (SpoilerRobotoTextView) dialoglayout.findViewById(R.id.firstTextView),
                         (CommentOverflow) dialoglayout.findViewById(R.id.commentOverflow));
                 builder.setView(dialoglayout);
@@ -504,6 +505,90 @@ public class DoEditorActions {
         } catch (Exception e) {
             //if thrown, there is likely an issue implementing this on the user's version of Android. There shouldn't be an issue, but just in case
         }
+
+        if (MMMData.loggedin) {
+            baseView.findViewById(R.id.encrypt).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final String[][] subreddits = MMMData.getSubreddits(v.getContext());
+
+                    final LayoutInflater inflater = LayoutInflater.from(a);
+                    final LinearLayout layout =
+                            (LinearLayout) inflater.inflate(R.layout.insert_encrypted, null);
+
+                    int[] attrs = {R.attr.font};
+
+                    TypedArray ta = baseView.getContext()
+                            .obtainStyledAttributes(
+                                    new ColorPreferences(baseView.getContext()).getFontStyle().getBaseId(), attrs);
+                    ta.recycle();
+
+                    final MaterialDialog dialog =
+                            new MaterialDialog.Builder(editText.getContext()).title(R.string.editor_title_encryption)
+                                    .customView(layout, false)
+                                    .positiveColorAttr(R.attr.tint)
+                                    .positiveText(R.string.editor_action_link)
+                                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                        @Override
+                                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                            final EditText secretBox =
+                                                    (EditText) dialog.findViewById(R.id.secrettext_box);
+                                            final EditText publicBox =
+                                                    (EditText) dialog.findViewById(R.id.publictext_box);
+                                            final MMMData.Passwordinfo passwordinfo = MMMData.getPassword(dialog.getContext(),
+                                                    ((TextView) dialog.findViewById(R.id.encryptfor_current)).getText()
+                                                            .toString());
+                                            dialog.dismiss();
+
+                                            String s = "["
+                                                    + publicBox.getText().toString()
+                                                    + "](/r/MegaMegaMonitor/wiki/encrypted \""
+                                                    + passwordinfo.id
+                                                    + ":"
+                                                    + MMMData.encrypt(secretBox.getText().toString(),
+                                                    passwordinfo.password)
+                                                    + "\")";
+                                            int start = Math.max(editText.getSelectionStart(), 0);
+                                            int end = Math.max(editText.getSelectionEnd(), 0);
+                                            editText.getText().insert(Math.max(start, end), s);
+                                        }
+                                    })
+                                    .build();
+
+                    //Tint the hint text if the base theme is Sepia
+                    if (SettingValues.currentTheme == 5) {
+                        ((EditText) dialog.findViewById(R.id.secrettext_box)).setHintTextColor(
+                                ContextCompat.getColor(dialog.getContext(), R.color.md_grey_600));
+                        ((EditText) dialog.findViewById(R.id.publictext_box)).setHintTextColor(
+                                ContextCompat.getColor(dialog.getContext(), R.color.md_grey_600));
+                    }
+                    ((TextView) dialog.findViewById(R.id.encryptfor_current)).setText(subreddits[0][0]);
+
+                    dialog.findViewById(R.id.encryptfor).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            final DialogInterface.OnClickListener l2 = new DialogInterface.OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    ((TextView) dialog.findViewById(R.id.encryptfor_current)).setText(
+                                            subreddits[0][i]);
+                                }
+                            };
+
+                            AlertDialogWrapper.Builder builder = new AlertDialogWrapper.Builder(dialog.getContext());
+                            builder.setTitle(R.string.encryptfor);
+                            builder.setSingleChoiceItems(subreddits[0], 0, l2);
+                            builder.show();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            });
+        } else {
+            baseView.findViewById(R.id.encrypt).setVisibility(View.GONE);
+        }
     }
 
     public static Editable e;
@@ -581,13 +666,13 @@ public class DoEditorActions {
         editText.getText().insert(Math.max(start, end) + wrapText.length(), wrapText);
     }
 
-    private static void setViews(String rawHTML, String subredditName,
+    private static void setViews(Context context, String rawHTML, String subredditName,
             SpoilerRobotoTextView firstTextView, CommentOverflow commentOverflow) {
         if (rawHTML.isEmpty()) {
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(context, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

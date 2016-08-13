@@ -61,7 +61,7 @@ public class Announcement extends BaseActivity {
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(Announcement.this, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

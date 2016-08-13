@@ -79,7 +79,7 @@ public class SelftextFull extends Fragment {
         }
 
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(getContext(), rawHTML);
 
         int startIndex = 0;
         if (!blocks.get(0).startsWith("<table>") && !blocks.get(0).startsWith("<pre>")) {

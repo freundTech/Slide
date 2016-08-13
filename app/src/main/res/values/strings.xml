@@ -1169,4 +1169,25 @@
     <string name="description_save_subfolders">Works in submission and comment views</string>
     <string name="content_settings">Content settings</string>
 
+    <!-- MMM Strings -->
+    <string name="auth_mmm">Connect to MMM</string>
+    <string name="title_mmm_login">Login to MMM</string>
+    <string name="mmmlogin_authenticating">MMM is Authenticating...</string>
+    <string name="encrypttext">Text</string>
+    <string name="publictext">Public Text</string>
+    <string name="encryptfor">Encrypt for</string>
+    <string name="settings_title_mmm">MMM Settings</string>
+    <string name="settings_title_icons_mmm">MMM Icon Settings</string>
+    <string name="settings_mmm">MegaMegaMonitor</string>
+    <string name="mmm_data">MMM Data</string>
+    <string name="mmm_user_settings">MMM User Settings</string>
+    <string name="refresh_mmm_data">Refresh MMM Data</string>
+    <string name="downloading_mmm_data">Downloading MMM Data...</string>
+    <string name="last_refreshed_mmm">Last updated: %1$s</string>
+    <string name="disconnect_mmm">Disconnect from MMM</string>
+    <string name="force_low_mem_mode">Force low memory mode</string>
+    <string name="mmm_hide_icons">Hide MMM Icons</string>
+    <string name="mmm_not_loggedin">You are not logged in to MMM</string>
+    <string name="editor_title_encryption">Encrypt text</string>
+
 </resources>

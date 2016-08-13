@@ -41,6 +41,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.cocosw.bottomsheet.BottomSheet;
 import com.devspark.robototextview.widget.RobotoTextView;
 
@@ -49,6 +50,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +70,7 @@ import me.ccrama.redditslide.ForceTouch.callback.OnRemove;
 import me.ccrama.redditslide.ForceTouch.callback.SimpleOnPeek;
 import me.ccrama.redditslide.Views.CustomQuoteSpan;
 import me.ccrama.redditslide.Views.PeekMediaView;
+import me.ccrama.redditslide.Visuals.FontPreferences;
 import me.ccrama.redditslide.Visuals.Palette;
 import me.ccrama.redditslide.handler.TextViewLinkHandler;
 import me.ccrama.redditslide.util.LinkUtil;
@@ -79,6 +83,7 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
     private              List<CharacterStyle> storedSpoilerSpans  = new ArrayList<>();
     private              List<Integer>        storedSpoilerStarts = new ArrayList<>();
     private              List<Integer>        storedSpoilerEnds   = new ArrayList<>();
+    private              Map<URLSpan, String> publictexts         = new HashMap<>();
     private static final Pattern              htmlSpoilerPattern  =
             Pattern.compile("<a href=\"([#/](?:spoiler|sp|s))\">([^<]*)</a>");
 
@@ -155,9 +160,13 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
         if (text.contains("[[d[")) {
             setStrikethrough(builder);
         }
+        if (text.contains("]e]]")) { //Match closing tag, because opening tag contains extra data
+            setEncryptionStyle(builder);
+        }
         if (text.contains("[[h[")) {
             setHighlight(builder, subreddit);
         }
+
         if (subreddit != null && !subreddit.isEmpty()) {
             setMovementMethod(new TextViewLinkHandler(this, subreddit, builder));
             setFocusable(false);
@@ -370,6 +379,52 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
         }
     }
 
+    private void setEncryptionStyle(SpannableStringBuilder builder) {
+        final int offset = "[[e[".length();
+
+        int start = -1;
+        int end;
+        for (int i = 0; i < builder.length() - 4; i++) {
+            if (builder.charAt(i) == '[' && builder.charAt(i + 1) == '[' && builder.charAt(i + 2) == 'e' && builder.charAt(i + 3) == '[') {
+                start = i+4;
+            } else if (builder.charAt(i) == ']' && builder.charAt(i + 1) == 'e' && builder.charAt(i + 2) == ']' && builder.charAt(i + 3) == ']') {
+                end = i;
+                char[] infoArr = new char[end-start];
+                builder.getChars(start, end, infoArr, 0);
+                String info = new String(infoArr);
+                String[] infos = info.split("\\|\\|\\|", 3);
+                String id = infos[0];
+                String publicText = infos[1];
+                Bitmap image = null;
+                TypedArray a = getContext().obtainStyledAttributes(new FontPreferences(getContext()).getPostFontStyle().getResId(), R.styleable.FontStyle);
+                int fontsize = (int) (a.getDimensionPixelSize(R.styleable.FontStyle_font_commentbody, -1)*1.5f);
+                a.recycle();
+                image = MMMData.icons.get(id);
+                float aspectRatio =
+                        (float) (1.00 * image.getWidth() / image.getHeight());
+                image = Bitmap.createScaledBitmap(image,
+                        (int) Math.ceil(fontsize * aspectRatio),
+                        (int) Math.ceil(fontsize), true);
+
+                URLSpan urlSpan = builder.getSpans(start, start, URLSpan.class)[0];
+                URLSpanNoUnderline span = new URLSpanNoUnderline(urlSpan.getURL());
+                builder.setSpan(span, builder.getSpanStart(urlSpan), builder.getSpanEnd(urlSpan), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.setSpan(new ForegroundColorSpan(Color.WHITE), builder.getSpanStart(urlSpan), builder.getSpanEnd(urlSpan), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.removeSpan(urlSpan);
+
+                publictexts.put(span, publicText);
+
+                builder.setSpan(new BackgroundColorSpan(this.getLinkTextColors().getDefaultColor()), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.delete(end, end + offset);
+                builder.delete(start-offset, start + id.length() + publicText.length()+6);
+                builder.insert(start-offset, " i");
+                builder.setSpan(new ImageSpan(getContext(), image), start-offset, start-offset+2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                i -= offset + id.length() + publicText.length()+4;
+                id = "";
+            }
+        }
+    }
+
     @Override
     public void onLinkClick(String url, int xOffset, String subreddit, URLSpan span) {
         if (url == null) {
@@ -490,6 +545,12 @@ public class SpoilerRobotoTextView extends RobotoTextView implements ClickableTe
                     break;
                 case EXTERNAL:
                     Reddit.defaultShare(url, activity);
+                    break;
+                case ENCRYPTION:
+                    new MaterialDialog.Builder(getContext()).title(getResources().getString(R.string.publictext))
+                            .content(publictexts.get(span))
+                            .positiveText(getResources().getString(R.string.btn_ok))
+                            .build().show();
                     break;
             }
         } else {

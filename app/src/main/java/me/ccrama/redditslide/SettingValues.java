@@ -111,6 +111,7 @@ public class SettingValues {
     public static final String PREF_PEEK                   = "peek";
     public static final String PREF_LARGE_LINKS            = "largeLinks";
     public static final String PREF_LARGE_DEPTH            = "largeDepth";
+    public static final String MMM_FORCE_LOW_MEM           = "mmmLowMem";
 
     public static CreateCardView.CardEnum defaultCardView;
     public static Sorting                 defaultSorting;
@@ -225,6 +226,8 @@ public class SettingValues {
     public static boolean colorIcon;
     public static boolean peek;
     public static boolean largeLinks;
+
+    public static boolean mmmLowMem;
 
     public static void setAllValues(SharedPreferences settings) {
         prefs = settings;
@@ -365,6 +368,7 @@ public class SettingValues {
         actionbarTap = prefs.getBoolean(PREF_ACTIONBAR_TAP, false);
         colorIcon = prefs.getBoolean(PREF_COLOR_ICON, false);
         peek = prefs.getBoolean(PREF_PEEK, false);
+        mmmLowMem = prefs.getBoolean(MMM_FORCE_LOW_MEM, false);
     }
 
     public static void setPicsEnabled(String sub, boolean checked) {

@@ -154,7 +154,7 @@ public class AlbumView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             {
                 if (user.getTitle() != null) {
-                    List<String> text = SubmissionParser.getBlocks(user.getTitle());
+                    List<String> text = SubmissionParser.getBlocks(main, user.getTitle());
                     setTextWithLinks(text.get(0), holder.text);
                     if (holder.text.getText().toString().isEmpty()) {
                         holder.text.setVisibility(View.GONE);
@@ -167,7 +167,7 @@ public class AlbumView extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             {
                 if (user.getDescription() != null) {
-                    List<String> text = SubmissionParser.getBlocks(user.getDescription());
+                    List<String> text = SubmissionParser.getBlocks(main, user.getDescription());
                     setTextWithLinks(text.get(0), holder.body);
                     if (holder.body.getText().toString().isEmpty()) {
                         holder.body.setVisibility(View.GONE);

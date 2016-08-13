@@ -200,7 +200,7 @@ public class SubredditAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(context, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

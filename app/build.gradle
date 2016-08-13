@@ -15,10 +15,10 @@ android {
         disable 'MissingTranslation'
     }
     defaultConfig {
-        applicationId "me.ccrama.redditslide"
-        minSdkVersion 15
+        applicationId "me.ccrama.redditslidemmm"
         targetSdkVersion 25
-        versionCode 280
+        minSdkVersion 15
+        versionCode 1280
         multiDexEnabled = true
         versionName androidGitVersion.name()
     }
@@ -118,6 +118,7 @@ dependencies {
     compile('com.mikepenz:aboutlibraries:5.8.1@aar') {
         transitive = true
     }
+    compile group: 'net.sourceforge.cssparser', name: 'cssparser', version: '0.9.4'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.hamcrest:hamcrest-all:1.3'

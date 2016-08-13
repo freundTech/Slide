@@ -65,6 +65,16 @@
                 android:scaleType="fitCenter"
                 android:tint="?attr/tint"
                 app:srcCompat="@drawable/link"/>
+        <ImageButton
+                android:id="@+id/encrypt"
+                android:layout_height="48dp"
+                android:layout_width="48dp"
+                android:background="?attr/selectableItemBackground"
+                android:cropToPadding="true"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:tint="?attr/tint"
+                app:srcCompat="@drawable/lock" />
 
         <ImageButton
                 android:id="@+id/bold"

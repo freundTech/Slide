@@ -565,12 +565,12 @@ public class AlbumPager extends FullScreenActivity
                     String title = "";
                     String description = "";
                     if (current.getTitle() != null) {
-                        List<String> text = SubmissionParser.getBlocks(current.getTitle());
+                        List<String> text = SubmissionParser.getBlocks(getContext(), current.getTitle());
                         title = text.get(0).trim();
                     }
 
                     if (current.getDescription() != null) {
-                        List<String> text = SubmissionParser.getBlocks(current.getDescription());
+                        List<String> text = SubmissionParser.getBlocks(getContext(), current.getDescription());
                         description = text.get(0).trim();
                     }
                     if (title.isEmpty() && description.isEmpty()) {

@@ -2740,7 +2740,7 @@ public class PopulateSubmissionViewHolder {
                 }
                 holder.firstTextView.setTypeface(typeface);
 
-                setViews(submission.getDataNode().get("selftext_html").asText(),
+                setViews(mContext, submission.getDataNode().get("selftext_html").asText(),
                         submission.getSubredditName() == null ? "all"
                                 : submission.getSubredditName(), holder);
                 holder.itemView.findViewById(R.id.body_area).setVisibility(View.VISIBLE);
@@ -3396,12 +3396,12 @@ public class PopulateSubmissionViewHolder {
         }
     }
 
-    private void setViews(String rawHTML, String subredditName, SubmissionViewHolder holder) {
+    private void setViews(Context context, String rawHTML, String subredditName, SubmissionViewHolder holder) {
         if (rawHTML.isEmpty()) {
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(context, rawHTML);
 
         int startIndex = 0;
         if (!blocks.get(0).startsWith("<table>") && !blocks.get(0).startsWith("<pre>")) {

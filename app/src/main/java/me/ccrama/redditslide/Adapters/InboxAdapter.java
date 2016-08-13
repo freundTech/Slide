@@ -54,6 +54,7 @@ import me.ccrama.redditslide.Activities.SendMessage;
 import me.ccrama.redditslide.Authentication;
 import me.ccrama.redditslide.DataShare;
 import me.ccrama.redditslide.Drafts;
+import me.ccrama.redditslide.MMMData;
 import me.ccrama.redditslide.OpenRedditLink;
 import me.ccrama.redditslide.R;
 import me.ccrama.redditslide.SettingValues;
@@ -170,6 +171,14 @@ public class InboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             titleString.append(direction);
             if (author != null) {
                 titleString.append(author);
+                titleString.append(" ");
+
+                TypedArray a = mContext.obtainStyledAttributes(new FontPreferences(mContext).getPostFontStyle().getResId(), R.styleable.FontStyle);
+                int fontsize = a.getDimensionPixelSize(R.styleable.FontStyle_font_commenttitle, -1);
+                a.recycle();
+                titleString.append(" ");
+
+                titleString = MMMData.addIcons(mContext, titleString, fontsize, author, comment.getSubreddit());
                 titleString.append(" ");
                 if (UserTags.isUserTagged(author)) {
                     SpannableStringBuilder pinned =
@@ -519,7 +528,7 @@ public class InboxAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(mContext, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first

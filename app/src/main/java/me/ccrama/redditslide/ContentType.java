@@ -127,10 +127,13 @@ public class ContentType {
             return Type.SPOILER;
         }
 
+        if (url.equals("/r/MegaMegaMonitor/wiki/encrypted")) {
+            return Type.ENCRYPTION;
+        }
+
         if (url.startsWith("mailto:")) {
             return Type.EXTERNAL;
         }
-
         if (url.startsWith("//")) url = "https:" + url;
         if (url.startsWith("/")) url = "reddit.com" + url;
         if (!url.contains("://")) url = "http://" + url;
@@ -453,6 +456,7 @@ public class ContentType {
         VIDEO,
         XKCD,
         TUMBLR,
-        VID_ME
+        VID_ME,
+        ENCRYPTION
     }
 }

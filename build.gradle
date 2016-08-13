@@ -3,9 +3,13 @@ apply plugin: 'com.github.ben-manes.versions'
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-beta2'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta6'
         // ./gradlew dependencyUpdates
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.14.0'
 
@@ -22,6 +26,10 @@ allprojects {
             url 'https://maven.google.com'
         }
 
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
     }
 }
 

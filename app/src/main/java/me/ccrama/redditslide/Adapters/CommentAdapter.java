@@ -729,7 +729,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(mContext, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first
@@ -760,7 +760,7 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return;
         }
 
-        List<String> blocks = SubmissionParser.getBlocks(rawHTML);
+        List<String> blocks = SubmissionParser.getBlocks(mContext, rawHTML);
 
         int startIndex = 0;
         // the <div class="md"> case is when the body contains a table or code block first
@@ -1306,6 +1306,8 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             ((ImageView) replyArea.findViewById(R.id.imagerep)).setColorFilter(
                                     Color.WHITE);
                             ((ImageView) replyArea.findViewById(R.id.link)).setColorFilter(
+                                    Color.WHITE);
+                            ((ImageView) replyArea.findViewById(R.id.encrypt)).setColorFilter(
                                     Color.WHITE);
                             ((ImageView) replyArea.findViewById(R.id.bold)).setColorFilter(
                                     Color.WHITE);
